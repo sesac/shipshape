@@ -24,11 +24,12 @@ module Shipshape
              default: ENV['BUNDLE_GITHUB__COM'].split(':').first,
              aliases: %(-T --T --access-token),
              desc: 'OAuth token for access to Github'
+
       def post(state, context, description)
         git_sha = run('git rev-parse --verify HEAD', capture: true).chomp
 
         resp = client.create_status(
-          options[:repo], git_sha, state,
+          "#{options[:owner]}/#{options[:repo]}", git_sha, state,
           context: context,
           description: description,
           target_url: options[:target_url]
