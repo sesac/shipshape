@@ -1,8 +1,9 @@
-# Shipshape
+# Ahoy Matey!
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/shipshape`. To experiment with that code, run `bin/console` for an interactive prompt.
+'tis a treasure chest o' utilities that can be used t' deploy applications usin' a general pattern we 'ave developed
+that works fer our crew. Use some or all o' it.
 
-TODO: Delete this and the text above, and describe your gem
+![Anchor](docs/anchor.png)
 
 ## Installation
 
@@ -38,4 +39,3 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/[USERN
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
