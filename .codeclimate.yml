@@ -1,0 +1,25 @@
+---
+engines:
+  shellcheck:
+    enabled: true
+  duplication:
+    enabled: false
+  fixme:
+    enabled: true
+  rubocop:
+    enabled: true
+    checks:
+      Rubocop/Style/MultilineMethodCallIndentation:
+        enabled: false
+ratings:
+  paths:
+  - "api/Gemfile.lock"
+  - "solr/Gemfile.lock"
+  - "**.inc"
+  - "**.js"
+  - "**.jsx"
+  - "**.module"
+  - "**.php"
+  - "**.py"
+  - "**.rb"
+exclude_paths: ["spec/fixtures"]

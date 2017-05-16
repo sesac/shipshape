@@ -1,0 +1,11 @@
+exclude_paths:
+  - vendor
+  - spec
+  - tmp
+
+IrresponsibleModule:
+  enabled: false
+
+LongParameterList:
+  max_params: 4
+

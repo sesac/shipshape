@@ -1,0 +1,41 @@
+AllCops:
+  Exclude:
+    - 'vendor/**/*'
+  TargetRubyVersion: 2.4
+
+Documentation:
+  Enabled: false
+
+Metrics/BlockLength:
+  Max: 500
+
+Metrics/LineLength:
+  Max: 120
+
+Style/AndOr:
+  EnforcedStyle: conditionals
+
+Style/BlockDelimiters:
+  EnforcedStyle: semantic
+
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  EnforcedStyle: always
+
+Style/Lambda:
+  EnforcedStyle: literal
+
+Style/LambdaCall:
+  EnforcedStyle: braces
+
+Style/MultilineBlockChain:
+  Enabled: false
+
+Style/MultilineMethodCallIndentation:
+  Enabled: true
+  EnforcedStyle: aligned
+
+Style/ParallelAssignment:
+  Enabled: false

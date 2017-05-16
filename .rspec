@@ -1,0 +1,5 @@
+--color
+-f d
+--order random
+--require spec_helper
+--require pry
