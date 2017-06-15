@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+require 'dotenv'
+Dotenv.load
 require File.expand_path('../lib/shipshape/cmd.rb', __dir__)
 
 Shipshape::Cmd.start(ARGV)

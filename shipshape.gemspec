@@ -8,8 +8,9 @@ require 'shipshape/version'
 Gem::Specification.new do |spec|
   spec.name          = 'shipshape'
   spec.version       = Shipshape::VERSION
-  spec.authors       = ['Ian MacDonald']
-  spec.email         = ['imacdonald@rumblefish.com']
+  spec.authors       = ['SESAC - HFA - Rumblefish']
+  spec.email         = ['developers@sesac.com']
+  spec.homepage      = 'http://www.harryfox.com'
 
   spec.summary       = %(Toolkit for building and deploying applications)
   spec.description   = %(Abstract the general patterns we use to deploy application)
@@ -31,15 +32,16 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'codeclimate-test-reporter'
-  spec.add_dependency 'rspec_junit_formatter'
-  spec.add_dependency 'thor'
-  spec.add_dependency 'aws-sdk'
-  spec.add_dependency 'octokit'
+  spec.add_dependency 'rspec_junit_formatter', '~> 0.2'
+  spec.add_dependency 'thor', '~> 0.19'
+  spec.add_dependency 'aws-sdk', '~> 2.9'
+  spec.add_dependency 'octokit', '~> 4.7'
+  spec.add_dependency 'dotenv', '~> 2.2'
 
-  spec.add_development_dependency 'bundler'
-  spec.add_development_dependency 'rake'
-  spec.add_development_dependency 'pry'
-  spec.add_development_dependency 'rspec'
-  spec.add_development_dependency 'rubocop'
+  spec.add_development_dependency 'codeclimate-test-reporter', '~> 1.0'
+  spec.add_development_dependency 'bundler', '~> 1.14'
+  spec.add_development_dependency 'rake', '~> 12.0'
+  spec.add_development_dependency 'pry', '~> 0.10'
+  spec.add_development_dependency 'rspec', '~> 3.5'
+  spec.add_development_dependency 'rubocop', '~> 0.47'
 end

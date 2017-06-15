@@ -23,7 +23,7 @@ module Shipshape
         class_option :group,
                      aliases: %w(-G --G),
                      desc: 'Name of CodeDeploy application group',
-                     default: ENV.fetch('RACK_ENV', 'DEV').upcase
+                     default: "#{ENV.fetch('RACK_ENV', 'DEV').upcase}-#{Pathname.pwd.basename.to_s.upcase}"
 
         class_option :s3_location,
                      aliases: %w(-K --K -T --T --target --s3-target --s3-location),
@@ -32,19 +32,19 @@ module Shipshape
 
         desc 'Deploy application revision via AWS CodeDeploy'
 
-        def zip
-          @zip = Pathname("../#{options[:application].downcase}.zip")
-          run(%(zip -r "#{zip}" "#{options[:source]}" -x@.shipshapeignore))
+        def zip_application
+          @zip_location = Pathname("../#{options[:application].downcase}.zip")
+          run(%(zip -r "#{zip_location}" "#{options[:source]}" -x@.shipshapeignore))
         end
 
         def upload_revision
           @location = s3_location
 
-          put_object(zip, location)
+          put_object(zip_location, location)
         end
 
         def create_deployment
-          client = Aws::CodeDeploy::Client.new
+          @client = Aws::CodeDeploy::Client.new
 
           @deploy_response = client.create_deployment(options_for_deployment)
         end
@@ -55,11 +55,13 @@ module Shipshape
 
         private
 
-        attr_reader :zip, :location, :client, :deploy_response
+        attr_reader :zip_location, :location, :client, :deploy_response
 
         def s3_location
-          Pathname(options[:s3_location]) ||
-            Pathname(options[:application].downcase) / Pathname(options[:group].downcase) / zip.basename
+          Pathname(options[:s3_location] ||
+                   Pathname("#{options[:application].downcase}/"\
+                            "#{options[:group].downcase}/"\
+                            "#{zip_location.basename}"))
         end
 
         def options_for_deployment
