@@ -1,6 +1,15 @@
 # frozen_string_literal: true
+
 require 'bundler/setup'
 require 'shipshape'
+require 'simplecov'
+
+SimpleCov.start do
+  minimum_coverage 100
+  refuse_coverage_drop
+
+  formatter SimpleCov::Formatter::MultiFormatter.new [SimpleCov::Formatter::HTMLFormatter]
+end
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

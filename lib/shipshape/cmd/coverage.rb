@@ -26,6 +26,15 @@ module Shipshape
       write_results
     end
 
+    desc 'complete',
+         'Retruns non-zero if code coverage is not 100%'
+    def complete
+      result = JSON.parse(Pathname('coverage/.last_run.json').read, symbolize_names: true)
+      coverage = result.dig(:result, :covered_percent)
+
+      raise ArgumentError, "Coverage less than 100%: #{coverage}" if coverage < 100
+    end
+
     private
 
     attr_reader :source, :destination, :results
