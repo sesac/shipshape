@@ -33,7 +33,7 @@ module Shipshape
         desc 'Deploy application revision via AWS CodeDeploy'
 
         def zip_application
-          @zip_location = Pathname("../#{options[:application].downcase}.zip")
+          @zip_location = Pathname("../#{Pathname.pwd.basename}.zip")
           run(%(zip -r "#{zip_location}" "#{options[:source]}" -x@.shipshapeignore))
         end
 
