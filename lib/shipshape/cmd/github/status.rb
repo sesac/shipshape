@@ -45,6 +45,5 @@ module Shipshape
 
     desc 'status SUBCOMMAND ...ARGS', 'Github status tasks'
     subcommand 'status', Status
-    # tasks['status'].options = Status.class_options
   end
 end
