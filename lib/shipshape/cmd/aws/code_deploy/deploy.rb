@@ -39,9 +39,9 @@ module Shipshape
 
         def zip_application
           @zip_location = Pathname("../#{Pathname.pwd.basename}.zip")
-          command = %(zip -r "#{zip_location}" "#{options[:source]}")
-          command << " -x@#{options[:ignore]}" if Pathname(options[:ignore]).exist?
-          run(command)
+          command = ['zip -r', zip_location, options[:source]]
+          command << "-x@#{options[:ignore]}" if Pathname(options[:ignore]).exist?
+          run(command.join(' '))
         end
 
         def upload_revision
