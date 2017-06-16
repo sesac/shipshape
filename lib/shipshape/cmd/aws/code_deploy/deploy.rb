@@ -38,10 +38,11 @@ module Shipshape
         desc 'Deploy application revision via AWS CodeDeploy'
 
         def zip_application
-          @zip_location = Pathname("../#{Pathname.pwd.basename}.zip")
-          command = ['zip -r', zip_location, options[:source]]
-          command << "-x@#{options[:ignore]}" if Pathname(options[:ignore]).exist?
-          run(command.join(' '))
+          @zip_location = Pathname("../#{Pathname.pwd.basename}.zip").expand_path
+
+          inside options[:source] do
+            run(zip_command)
+          end
         end
 
         def upload_revision
@@ -63,6 +64,15 @@ module Shipshape
         private
 
         attr_reader :zip_location, :location, :client, :deploy_response
+
+        def zip_command
+          ignore_location = Pathname(options[:ignore]).expand_path
+
+          command = ['zip -r', zip_location, './']
+          command << "-x@#{ignore_location}" if ignore_location.exist?
+
+          command.join(' ')
+        end
 
         def s3_location
           Pathname(options[:s3_location] ||
