@@ -30,11 +30,18 @@ module Shipshape
                      desc: 'Key of the S3 object to upload project to for deployment. '\
                            'Will default to <application>/<group>/<application>.zip'
 
+        class_option :ignore,
+                     aliases: %w(-I --I --ignore-file),
+                     desc: 'Will exclude the patterns listed in the file',
+                     default: '.shipshapeignore'
+
         desc 'Deploy application revision via AWS CodeDeploy'
 
         def zip_application
           @zip_location = Pathname("../#{Pathname.pwd.basename}.zip")
-          run(%(zip -r "#{zip_location}" "#{options[:source]}" -x@.shipshapeignore))
+          command = %(zip -r "#{zip_location}" "#{options[:source]}")
+          command << " -x@#{options[:ignore]}" if Pathname(options[:ignore]).exist?
+          run(command)
         end
 
         def upload_revision
