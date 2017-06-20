@@ -1,0 +1,50 @@
+#!/bin/bash
+
+DOCKER_INSTALLER_URL="https://get.docker.com/"
+DOCKER_COMPOSE_VERSION=$(git ls-remote "https://github.com/docker/compose" | grep refs/tags | grep -oP "[0-9]+\.[0-9][0-9]+\.[0-9]+$" | tail -n 1)
+# RVM_INSTALLER_URL="https://get.rvm.io"
+RVM_INSTALLER_URL="https://raw.githubusercontent.com/wayneeseguin/rvm/stable/binscripts/rvm-installer"
+CODEDEPLOY_INSTALLER_URL="https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install"
+
+# hostname config (for sudo to work properly)
+echo "$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)" "$(hostname)" | sudo tee -a /etc/hosts
+
+# packages
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
+               -o Dpkg::Options::="--force-confdef" \
+               -o Dpkg::Options::="--force-confold"
+apt-get install -y \
+        jq \
+        rpm \
+        htop \
+        libaio1 \
+        libmysqlclient-dev \
+        mysql-client \
+        libgmp3-dev \
+        libmysql-java \
+        openjdk-8-jre \
+        wget \
+        python-pip
+
+# docker
+wget -qO- "$DOCKER_INSTALLER_URL" | sh
+usermod -aG docker ubuntu
+service docker start
+
+# docker-compose
+curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o "/usr/local/bin/docker-compose"
+sudo chmod +x /usr/local/bin/docker-compose
+curl -L "https://raw.githubusercontent.com/docker/compose/$(docker-compose version --short)/contrib/completion/bash/docker-compose" -o "/etc/bash_completion.d/docker-compose"
+
+# ruby
+curl -sSL "$RVM_INSTALLER_URL" | bash -s stable --ruby={2.3.0,2.4.1} --gems=bundler
+usermod -aG rvm root
+usermod -aG rvm ubuntu
+
+# codedeploy
+cd /home/ubuntu || true
+wget "$CODEDEPLOY_INSTALLER_URL"
+chmod +x ./install
+bash -l -c "ruby ./install auto"
+service codedeploy-agent start
