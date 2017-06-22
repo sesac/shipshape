@@ -4,8 +4,6 @@ require 'thor'
 require_relative './cmd/aws/simple_storage_service'
 require_relative './cmd/aws/code_deploy'
 require_relative './cmd/coverage'
-require 'pry'
-binding.pry
 require_relative './cmd/bootstrap'
 require_relative './cmd/github/status'
 

@@ -7,14 +7,10 @@ module Shipshape
   class Bootstrap < Thor::Group
     include Thor::Actions
 
-    # def self.source_root
-    #   File.dirname(__FILE__)
-    # end
+    source_root Pathname(File.expand_path('..', __FILE__)).dirname
 
-    def create_lib_file
-      dest = Pathname(__dir__).expand_path
-      binding.pry
-      directory('./lib/shipshape/templates', dest)
+    def add_files
+      directory('templates', Pathname('.').expand_path)
     end
   end
 end
