@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -e
+cd '/home/ubuntu' || exit
+
+mkdir -p 'app'
+
+cd '/home/ubuntu/app' || exit
+
+sudo rm -rf -- *

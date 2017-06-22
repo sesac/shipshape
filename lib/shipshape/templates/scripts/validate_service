@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -ex
+cd '/home/ubuntu/app' || exit
+
+sleep 20
+
+for container_id in $(docker-compose -f docker-compose-prod.yml ps -q)
+do
+    bin/check_container "$container_id"
+done

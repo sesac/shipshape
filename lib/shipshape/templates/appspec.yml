@@ -1,0 +1,30 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ubuntu/app
+permissions:
+  - object: /home/ubuntu
+    owner: ubuntu
+    group: ubuntu
+hooks:
+  BeforeInstall:
+    - location: scripts/before_install
+      timeout: 180
+      runas: ubuntu
+  AfterInstall:
+    - location: scripts/after_install
+      timeout: 600
+      runas: ubuntu
+  ApplicationStop:
+    - location: scripts/application_stop
+      timeout: 180
+      runas: ubuntu
+  ApplicationStart:
+    - location: scripts/application_start
+      timeout: 180
+      runas: ubuntu
+  ValidateService:
+    - location: scripts/validate_service
+      timeout: 180
+      runas: ubuntu

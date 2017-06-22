@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -e
+cd '/home/ubuntu/app' || exit
+chmod +x -R 'bin/' 'scripts/' || true
+
+docker-compose -f docker-compose-prod.yml build --force-rm --pull

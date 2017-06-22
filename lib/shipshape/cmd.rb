@@ -4,6 +4,9 @@ require 'thor'
 require_relative './cmd/aws/simple_storage_service'
 require_relative './cmd/aws/code_deploy'
 require_relative './cmd/coverage'
+require 'pry'
+binding.pry
+require_relative './cmd/bootstrap'
 require_relative './cmd/github/status'
 
 module Shipshape
@@ -19,5 +22,7 @@ module Shipshape
 
     desc 'github SUBCOMMAND ...ARGS', 'Github repo tasks'
     subcommand 'github', Github
+
+    register(Bootstrap, 'bootstrap', 'bootstrap', 'Add files to project to assist with deployment')
   end
 end

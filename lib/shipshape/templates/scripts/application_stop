@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -e
+cd '/home/ubuntu/app' || exit
+
+docker-compose -f docker-compose-prod.yml ps
+docker-compose -f docker-compose-prod.yml down --remove-orphans --rmi local -v
+
+docker ps -a -q | while IFS='' read -r container
+do
+    docker rm "$container" || true
+done
+
+docker images -f 'dangling=true' -q | while IFS='' read -r image
+do
+    docker rmi "$image" || true
+done
+
+docker volume prune -f
+
+docker network prune -f
+
+docker-compose -f docker-compose-prod.yml ps
