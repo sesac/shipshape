@@ -3,8 +3,6 @@
 require 'thor'
 require_relative 'code_deploy/deploy'
 
-require 'pry'
-
 module Shipshape
   class AWS
     class CodeDeploy < Thor
