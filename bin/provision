@@ -38,6 +38,7 @@ sudo chmod +x /usr/local/bin/docker-compose
 curl -L "https://raw.githubusercontent.com/docker/compose/$(docker-compose version --short)/contrib/completion/bash/docker-compose" -o "/etc/bash_completion.d/docker-compose"
 
 # ruby
+curl -sSL https://rvm.io/mpapis.asc | gpg --import -
 curl -sSL "$RVM_INSTALLER_URL" | bash -s stable --ruby={2.3.0,2.4.1} --gems=bundler
 usermod -aG rvm root
 usermod -aG rvm ubuntu
