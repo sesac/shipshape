@@ -6,6 +6,10 @@ AllCops:
 Documentation:
   Enabled: false
 
+Layout/MultilineMethodCallIndentation:
+  Enabled: true
+  EnforcedStyle: aligned
+
 Metrics/BlockLength:
   Max: 500
 
@@ -32,10 +36,6 @@ Style/LambdaCall:
 
 Style/MultilineBlockChain:
   Enabled: false
-
-Style/MultilineMethodCallIndentation:
-  Enabled: true
-  EnforcedStyle: aligned
 
 Style/ParallelAssignment:
   Enabled: false
