@@ -50,7 +50,7 @@ module Shipshape
               :encrypt,
               type: :boolean,
               default: false,
-              aliases: %w(-e --e),
+              aliases: %w[-e --e],
               desc: 'Whether or not to encrypt/unencrypt the specified S3 object'
             ]
           end
@@ -60,7 +60,7 @@ module Shipshape
               :kms_key_id,
               type: :string,
               default: ENV['AWS_KMS_KEY_ID'],
-              aliases: %w(-K --K --kms-key-id),
+              aliases: %w[-K --K --kms-key-id],
               desc: 'The id of the AWS KMS Key to use for encryption. '\
                     'Can also be set with AWS_KMS_KEY_ID'
             ]
@@ -71,7 +71,7 @@ module Shipshape
               :bucket,
               type: :string,
               default: ENV.fetch('AWS_DEFAULT_BUCKET', 'hub-code-deploy'),
-              aliases: %w(-B --B --bucket),
+              aliases: %w[-B --B --bucket],
               desc: 'The bucket to upload/download objects to/from. '\
                     'Can also be set with AWS_DEFAULT_BUCKET'
             ]

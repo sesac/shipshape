@@ -11,27 +11,27 @@ module Shipshape
         include Actions::AWS::SimpleStorageService
 
         class_option :source,
-                     aliases: %w(-S --S),
+                     aliases: %w[-S --S],
                      desc: 'Source of application files to deploy',
                      default: './'
 
         class_option :application,
-                     aliases: %w(-A --A),
+                     aliases: %w[-A --A],
                      desc: 'Name of CodeDeploy application to deploy',
                      default: Pathname.pwd.basename.to_s.upcase
 
         class_option :group,
-                     aliases: %w(-G --G),
+                     aliases: %w[-G --G],
                      desc: 'Name of CodeDeploy application group',
                      default: "#{ENV.fetch('RACK_ENV', 'DEV').upcase}-#{Pathname.pwd.basename.to_s.upcase}"
 
         class_option :s3_location,
-                     aliases: %w(-K --K -T --T --target --s3-target --s3-location),
+                     aliases: %w[-K --K -T --T --target --s3-target --s3-location],
                      desc: 'Key of the S3 object to upload project to for deployment. '\
                            'Will default to <application>/<group>/<application>.zip'
 
         class_option :ignore,
-                     aliases: %w(-I --I --ignore-file),
+                     aliases: %w[-I --I --ignore-file],
                      desc: 'Will exclude the patterns listed in the file',
                      default: '.shipshapeignore'
 

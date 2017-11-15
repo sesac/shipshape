@@ -10,11 +10,11 @@ module Shipshape
          'the host file system. This munges the coverage results to be readable relative to the host machine.'
     option :coverage_root,
            default: '/var/app',
-           aliases: %w(-C --C --coverage-root),
+           aliases: %w[-C --C --coverage-root],
            desc: 'Path of the coverage relative to whatever container it was generated in'
     option :host_root,
            default: Dir.pwd,
-           aliases: %w(-H --H --host-root),
+           aliases: %w[-H --H --host-root],
            desc: 'Path relative to the host to change coverage to'
 
     def format(source, destination)
