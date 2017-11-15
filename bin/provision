@@ -19,6 +19,7 @@ apt-get install -y \
         rpm \
         htop \
         libaio1 \
+        libpq-dev \
         libmysqlclient-dev \
         mysql-client \
         libgmp3-dev \
