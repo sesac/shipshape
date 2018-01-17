@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require 'aws-sdk'
+require 'aws-sdk-s3'
+require 'aws-sdk-kms'
 
 module Shipshape
   module Actions
