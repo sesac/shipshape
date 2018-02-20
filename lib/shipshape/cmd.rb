@@ -2,6 +2,7 @@
 
 require 'thor'
 require_relative './cmd/aws/simple_storage_service'
+require_relative './cmd/aws/key_management_service'
 require_relative './cmd/aws/code_deploy'
 require_relative './cmd/coverage'
 require_relative './cmd/bootstrap'
@@ -11,6 +12,9 @@ module Shipshape
   class Cmd < Thor
     desc 's3 SUBCOMMAND ...ARGS', 'AWS S3 tasks'
     subcommand 's3', AWS::SimpleStorageService
+
+    desc 'kms SUBCOMMAND ...ARGS', 'AWS KMS tasks'
+    subcommand 'kms', AWS::KeyManagementService
 
     desc 'codedeploy SUBCOMMAND ...ARGS', 'CodeDeploy tasks'
     subcommand 'codedeploy', AWS::CodeDeploy
