@@ -31,12 +31,13 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
+  spec.add_dependency 'aws-sdk-codedeploy', '~> 1.3'
+  spec.add_dependency 'aws-sdk-kms', '~> 1.5'
   spec.add_dependency 'aws-sdk-s3', '~> 1.8'
-  spec.add_dependency 'aws-sdk-kms', '~> 1.4'
   spec.add_dependency 'dotenv', '~> 2.2'
-  spec.add_dependency 'octokit', '~> 4.7'
-  spec.add_dependency 'rspec_junit_formatter', '~> 0.2'
-  spec.add_dependency 'thor', '~> 0.19'
+  spec.add_dependency 'octokit', '~> 4.8'
+  spec.add_dependency 'rspec_junit_formatter', '~> 0.3'
+  spec.add_dependency 'thor', '~> 0.20'
 
   spec.add_development_dependency 'bundler', '~> 1.14'
   spec.add_development_dependency 'codeclimate-test-reporter', '~> 1.0'

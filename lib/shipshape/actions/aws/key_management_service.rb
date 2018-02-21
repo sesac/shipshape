@@ -11,21 +11,43 @@ module Shipshape
         end
 
         def encrypt_object(source, destination)
-          result = new_client.encrypt(key_id: options['kms_key_id'], plaintext: Pathname(source).read)
+          client = new_client
+          result = parse_source(source) { |line|
+            [client.encrypt(key_id: options['kms_key_id'], plaintext: line).ciphertext_blob].pack('*m').delete("\n")
+          }
 
-          Pathname(destination).write(result.ciphertext_blob)
+          write_result(destination, result)
         end
 
         def decrypt_object(source, destination)
-          result = new_client.decrypt(ciphertext_blob: Pathname(source).read)
+          client = new_client
+          result = parse_source(source) { |line|
+            client.decrypt(ciphertext_blob: line.unpack('*m').first).plaintext
+          }
 
-          Pathname(destination).write(result.plaintext)
+          write_result(destination, result)
         end
 
         private
 
         def new_client
           Aws::KMS::Client.new
+        end
+
+        def parse_source(source)
+          Pathname(source).expand_path.readlines.lazy.collect(&:chomp).collect { |line|
+            next line if line.length <= 1
+
+            yield line
+          }
+        end
+
+        def write_result(destination, result)
+          Pathname(destination).expand_path.open('w') { |file| write_content(file, result) }
+        end
+
+        def write_content(file, content)
+          content.each { |line| file.write(line + "\n") }
         end
 
         class << self
