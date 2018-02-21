@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'thor'
+require 'aws-sdk-codedeploy'
 require_relative '../../../actions/aws/simple_storage_service'
 
 module Shipshape
