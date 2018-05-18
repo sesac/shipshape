@@ -62,6 +62,10 @@ module Shipshape
           client.wait_until(:deployment_successful, deployment_id: deploy_response.deployment_id)
         end
 
+        def cleanup
+          zip_location.delete
+        end
+
         private
 
         attr_reader :zip_location, :location, :client, :deploy_response
