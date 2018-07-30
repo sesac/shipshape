@@ -48,19 +48,19 @@ curl -sSL "$RVM_INSTALLER_URL" | bash -s stable --ruby={2.3.0,2.4.1,2.4.2,2.4.3}
 usermod -aG rvm root
 usermod -aG rvm ubuntu
 
-# codedeploy
-cd /home/ubuntu || true
-wget "$CODEDEPLOY_INSTALLER_URL"
-chmod +x ./install
-bash -l -c "ruby ./install auto"
-service codedeploy-agent start
-
 # CloudWatch Monitoring
 command="/root/aws-scripts-mon/mon-put-instance-data.pl --mem-util --mem-used --mem-avail --disk-path=/ --disk-space-util --disk-space-used --disk-space-avail --verbose --from-cron"
 job="*/5 * * * * $command"
 curl -sSL "$MONITORING_INSTALLER_URL" -O
 unzip CloudWatchMonitoringScripts-1.2.2.zip && rm CloudWatchMonitoringScripts-1.2.2.zip
 cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | crontab -
+
+# codedeploy
+cd /home/ubuntu || true
+wget "$CODEDEPLOY_INSTALLER_URL"
+chmod +x ./install
+bash -l -c "ruby ./install auto"
+service codedeploy-agent start
 
 # csysdig: container htop
 curl -s https://s3.amazonaws.com/download.draios.com/DRAIOS-GPG-KEY.public | apt-key add -
