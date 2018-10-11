@@ -49,8 +49,8 @@ usermod -aG rvm root
 usermod -aG rvm ubuntu
 
 # CloudWatch Monitoring
-command="/root/aws-scripts-mon/mon-put-instance-data.pl --mem-util --mem-used --mem-avail --disk-path=/ --disk-space-util --disk-space-used --disk-space-avail --verbose --from-cron"
-job="*/5 * * * * $command"
+command="/root/aws-scripts-mon/mon-put-instance-data.pl --mem-util --mem-used --mem-avail --disk-path=/ --disk-space-util --disk-space-used --disk-space-avail --verbose --from-cron --auto-scaling"
+job="* * * * * $command"
 curl -sSL "$MONITORING_INSTALLER_URL" -o "/root/aws-scripts-mon.zip"
 unzip /root/aws-scripts-mon.zip -d /root && rm /root/aws-scripts-mon.zip
 cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | crontab -
