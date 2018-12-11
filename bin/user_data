@@ -3,7 +3,7 @@
 set -xv
 
 cd /home/ubuntu || true
-curl -sSL "https://raw.githubusercontent.com/sesac-applications/shipshape/master/bin/provision" >> provision
+curl -sSL "https://raw.githubusercontent.com/rumblefishinc/shipshape/master/bin/provision" >> provision
 chmod +x ./provision
 
 ./provision
