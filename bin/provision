@@ -4,6 +4,7 @@ DOCKER_INSTALLER_URL="https://get.docker.com/"
 DOCKER_COMPOSE_VERSION=$(git ls-remote "https://github.com/docker/compose" | grep refs/tags | grep -oP "[0-9]+\.[0-9][0-9]+\.[0-9]+$" | tail -n 1)
 RVM_INSTALLER_URL="https://raw.githubusercontent.com/wayneeseguin/rvm/stable/binscripts/rvm-installer"
 CODEDEPLOY_INSTALLER_URL="https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install"
+MONITORING_INSTALLER_URL="https://aws-cloudwatch.s3.amazonaws.com/downloads/CloudWatchMonitoringScripts-1.2.2.zip"
 
 # hostname config (for sudo to work properly)
 echo "$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)" "$(hostname)" | sudo tee -a /etc/hosts
@@ -25,7 +26,10 @@ apt-get install -y \
         libmysql-java \
         openjdk-8-jre \
         wget \
-        python-pip
+        python-pip \
+        unzip \
+        libwww-perl \
+        libdatetime-perl
 
 # docker
 wget -qO- "$DOCKER_INSTALLER_URL" | sh
@@ -45,6 +49,13 @@ gpg --keyserver hkp://keys.gnupg.net \
 curl -sSL "$RVM_INSTALLER_URL" | bash -s stable --ruby=2.5 --gems=bundler,dotenv,pry
 usermod -aG rvm root
 usermod -aG rvm ubuntu
+
+# CloudWatch Monitoring
+command="/root/aws-scripts-mon/mon-put-instance-data.pl --mem-util --mem-used --mem-avail --disk-path=/ --disk-space-util --disk-space-used --disk-space-avail --verbose --from-cron --auto-scaling"
+job="* * * * * $command"
+curl -sSL "$MONITORING_INSTALLER_URL" -o "/root/aws-scripts-mon.zip"
+unzip /root/aws-scripts-mon.zip -d /root && rm /root/aws-scripts-mon.zip
+cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | crontab -
 
 # codedeploy
 cd /home/ubuntu || true
