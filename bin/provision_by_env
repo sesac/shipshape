@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -u
+
+ENV="$1"
 DOCKER_COMPOSE_VERSION=$(git ls-remote "https://github.com/docker/compose" | grep refs/tags | grep -oP "[0-9]+\\.[0-9][0-9]+\\.[0-9]+$" | tail -n 1)
 RVM_INSTALLER_URL="https://raw.githubusercontent.com/wayneeseguin/rvm/stable/binscripts/rvm-installer"
 CODEDEPLOY_INSTALLER_URL="https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install"
@@ -102,3 +105,28 @@ curl -s -o /etc/apt/sources.list.d/draios.list http://download.draios.com/stable
 apt-get update
 apt-get -y install "linux-headers-$(uname -r)"
 apt-get -y install sysdig
+
+# microservice configuration
+curl "https://raw.githubusercontent.com/sesac/docker-cfg/docker-compose.yml" \
+     -o "docker-compose.yml"
+curl -L "https://raw.githubusercontent.com/sesac/docker-cfg/.env.$ENV" \
+     -o ".env"
+
+sed -i 's/^HOST_IP=.*//' .env
+sed -i 's/^JOIN_IP=.*//' .env
+
+# shellcheck disable=SC1091
+source ".env"
+
+# IP address of server we are deploying on
+HOST_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
+
+# List of nodes in the consul cluster, we will join this cluster
+JOIN_IP=$(curl -s "http://$CONSUL_HOST/v1/catalog/service/consul" | jq -r 'map("-retry-join="+.Address) | join(" ")')
+
+# replace or append *_IP variables
+sed -i "/^HOST_IP=/{h;s/=.*/=$HOST_IP/};\${x;/^\$/{s//HOST_IP=$HOST_IP/;H};x}" .env
+sed -i "/^JOIN_IP=/{h;s/=.*/=$JOIN_IP/};\${x;/^\$/{s//JOIN_IP=$JOIN_IP/;H};x}" .env
+
+docker-compose up -d
+docker-compose ps
