@@ -1,0 +1,132 @@
+#!/bin/bash
+
+set -u
+
+ENV="$1"
+DOCKER_COMPOSE_VERSION=$(git ls-remote "https://github.com/docker/compose" | grep refs/tags | grep -oP "[0-9]+\\.[0-9][0-9]+\\.[0-9]+$" | tail -n 1)
+RVM_INSTALLER_URL="https://raw.githubusercontent.com/wayneeseguin/rvm/stable/binscripts/rvm-installer"
+CODEDEPLOY_INSTALLER_URL="https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install"
+MONITORING_INSTALLER_URL="https://aws-cloudwatch.s3.amazonaws.com/downloads/CloudWatchMonitoringScripts-1.2.2.zip"
+AWSCLI_INSTALLER_URL="https://s3.amazonaws.com/aws-cli/awscli-bundle.zip"
+
+# hostname config (for sudo to work properly)
+echo "$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)" "$(hostname)" | sudo tee -a /etc/hosts
+
+# packages
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
+               -o Dpkg::Options::="--force-confdef" \
+               -o Dpkg::Options::="--force-confold"
+apt-get install -y \
+        jq \
+        rpm \
+        htop \
+        libaio1 \
+        libpq-dev \
+        libmysqlclient-dev \
+        mysql-client \
+        libgmp3-dev \
+        libmysql-java \
+        openjdk-8-jre \
+        wget \
+        python-pip \
+        unzip \
+        libwww-perl \
+        libdatetime-perl
+
+# docker - set repository
+apt-get update
+apt-get install -y \
+        apt-transport-https \
+        ca-certificates \
+        curl \
+        gnupg-agent \
+        software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+                   $(lsb_release -cs) \
+                   stable"
+# docker - install docker CE
+apt-get update
+apt-get install -y \
+        docker-ce \
+        docker-ce-cli \
+        containerd.io
+# docker - post installation
+usermod -aG docker ubuntu
+service docker start
+
+# docker-compose
+curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" \
+     -o "/usr/local/bin/docker-compose"
+sudo chmod +x /usr/local/bin/docker-compose
+curl -L "https://raw.githubusercontent.com/docker/compose/$(docker-compose version --short)/contrib/completion/bash/docker-compose" \
+     -o "/etc/bash_completion.d/docker-compose"
+
+# ruby
+gpg --keyserver hkp://keys.gnupg.net \
+    --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+curl -sSL "$RVM_INSTALLER_URL" | bash -s stable --ruby=2.5 --gems=bundler,dotenv,pry
+usermod -aG rvm root
+usermod -aG rvm ubuntu
+
+# CloudWatch Monitoring
+command="/root/aws-scripts-mon/mon-put-instance-data.pl \
+  --mem-util \
+  --mem-used \
+  --mem-avail \
+  --disk-path=/ \
+  --disk-space-util \
+  --disk-space-used \
+  --disk-space-avail \
+  --verbose \
+  --from-cron \
+  --auto-scaling"
+job="* * * * * $command"
+curl -sSL "$MONITORING_INSTALLER_URL" -o "/root/aws-scripts-mon.zip"
+unzip /root/aws-scripts-mon.zip -d /root && rm /root/aws-scripts-mon.zip
+cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | crontab -
+
+# codedeploy
+cd /home/ubuntu || true
+wget "$CODEDEPLOY_INSTALLER_URL"
+chmod +x ./install
+bash -l -c "ruby ./install auto"
+service codedeploy-agent start
+
+# awscli
+curl "$AWSCLI_INSTALLER_URL" -o "awscli-bundle.zip"
+unzip awscli-bundle.zip
+./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+
+# csysdig: container htop
+curl -s https://s3.amazonaws.com/download.draios.com/DRAIOS-GPG-KEY.public | apt-key add -
+curl -s -o /etc/apt/sources.list.d/draios.list http://download.draios.com/stable/deb/draios.list
+apt-get update
+apt-get -y install "linux-headers-$(uname -r)"
+apt-get -y install sysdig
+
+# microservice configuration
+curl "https://raw.githubusercontent.com/sesac/docker-cfg/master/docker-compose.yml" \
+     -o "docker-compose.yml"
+curl -L "https://raw.githubusercontent.com/sesac/docker-cfg/master/.env.$ENV" \
+     -o ".env"
+
+sed -i 's/^HOST_IP=.*//' .env
+sed -i 's/^JOIN_IP=.*//' .env
+
+# shellcheck disable=SC1091
+source ".env"
+
+# IP address of server we are deploying on
+HOST_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
+
+# List of nodes in the consul cluster, we will join this cluster
+JOIN_IP=$(curl -s "http://$CONSUL_HOST/v1/catalog/service/consul" | jq -r 'map("-retry-join="+.Address) | join(" ")')
+
+# replace or append *_IP variables
+sed -i "/^HOST_IP=/{h;s/=.*/=$HOST_IP/};\${x;/^\$/{s//HOST_IP=$HOST_IP/;H};x}" .env
+sed -i "/^JOIN_IP=/{h;s/=.*/=$JOIN_IP/};\${x;/^\$/{s//JOIN_IP=$JOIN_IP/;H};x}" .env
+
+docker-compose up -d
+docker-compose ps
