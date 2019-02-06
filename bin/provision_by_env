@@ -107,9 +107,9 @@ apt-get -y install "linux-headers-$(uname -r)"
 apt-get -y install sysdig
 
 # microservice configuration
-curl "https://raw.githubusercontent.com/sesac/docker-cfg/docker-compose.yml" \
+curl "https://raw.githubusercontent.com/sesac/docker-cfg/DEV-1-consul/docker-compose.yml" \
      -o "docker-compose.yml"
-curl -L "https://raw.githubusercontent.com/sesac/docker-cfg/.env.$ENV" \
+curl -L "https://raw.githubusercontent.com/sesac/docker-cfg/DEV-1-consul/.env.$ENV" \
      -o ".env"
 
 sed -i 's/^HOST_IP=.*//' .env
