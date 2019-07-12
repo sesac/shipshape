@@ -10,7 +10,8 @@ module Shipshape
     include Actions::AWS::KeyManagementService
 
     desc 'push APP_NAME APP_ENV',
-         'Push values in .env file to AWS Parameter Store.'
+         'Push values in .env file to AWS Parameter Store. ' \
+         'Authenticates using AWS credentials in env or ~/.aws/credentials.'
 
     def push(app_name, app_env)
       key_id = options['kms_key_id'].split('/').last
@@ -19,7 +20,8 @@ module Shipshape
     end
 
     desc 'pull APP_NAME APP_ENV',
-         'Pull values from parameter store into .env file.'
+         'Pull values from parameter store into .env file.' \
+         'Authenticates using AWS credentials in env or ~/.aws/credentials.'
 
     def pull(app_name, app_env)
       path = Pathname(__FILE__).join('../../../../bin/pull_env').expand_path
