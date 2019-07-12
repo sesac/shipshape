@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+app_name="$1" # e.g. command-center/app
+local_version=${2:-"${IMAGE_VERSION:-}"}
+remote_version=${3:-"${REMOTE_IMAGE_VERSION:-}"}
+remote_version=${remote_version:-"$local_version"}
+registry_host=${4:-"368304857153.dkr.ecr.us-east-1.amazonaws.com"}
+
+eval "$(aws ecr get-login --no-include-email --region us-east-1)"
+
+local_image="$app_name:$local_version"
+remote_image="$registry_host/$app_name:$remote_version"
+
+docker tag "$local_image" "$remote_image"
+
+docker push "$remote_image"
