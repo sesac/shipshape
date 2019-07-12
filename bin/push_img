@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+IFS=$'\n\t'
+yel=$'\e[0;33m'
+cyn=$'\e[0;36m'
+end=$'\e[0m'
+
+app_name="$1" # e.g. command-center/app
+local_version=${2:-"${IMAGE_VERSION:-}"}
+remote_version=${3:-"${REMOTE_IMAGE_VERSION:-}"}
+remote_version=${remote_version:-"$local_version"}
+registry_host=${4:-"368304857153.dkr.ecr.us-east-1.amazonaws.com"}
+
+print_warn() {
+  printf "%s\\nWARNING: %s$1\\n" "$yel" "$end"
+}
+
+print_header() {
+  printf "%s\\n\\n===> %s \\n\\n%s" "$cyn" "$1" "$end"
+}
+
+# # shellcheck disable=SC1091
+# if [ -e .env ]
+# then
+#     source ".env"
+# fi
+
+print_header "Get creds"
+
+eval "$(aws ecr get-login --no-include-email --region us-east-1)"
+
+print_header "Tag Docker image"
+
+local_image="$app_name:$local_version"
+remote_image="$registry_host/$app_name:$remote_version"
+
+docker tag "$local_image" "$remote_image"
+
+print_header "Push Docker image"
+
+docker push "$remote_image"
