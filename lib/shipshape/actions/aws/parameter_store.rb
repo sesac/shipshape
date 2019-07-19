@@ -46,7 +46,7 @@ module Shipshape
         end
 
         def put_opts
-          default = { overwrite: true }
+          default = { overwrite: true, type: 'String' }
 
           return default.merge(key_id: options['kms_key_id'], type: 'SecureString') if options['encrypt']
 
