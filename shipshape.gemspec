@@ -34,6 +34,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'aws-sdk-codedeploy', '~> 1.3'
   spec.add_dependency 'aws-sdk-kms', '~> 1.5'
   spec.add_dependency 'aws-sdk-s3', '~> 1.8'
+  spec.add_dependency 'aws-sdk-ssm', '~> 1.52'
   spec.add_dependency 'dotenv', '~> 2.2'
   spec.add_dependency 'octokit', '~> 4.8'
   spec.add_dependency 'rspec_junit_formatter', '~> 0.3'

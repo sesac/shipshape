@@ -28,6 +28,19 @@ module Shipshape
           write_result(destination, result)
         end
 
+        class << self
+          def kms_key_id_options
+            [
+              :kms_key_id,
+              type: :string,
+              default: ENV['AWS_KMS_KEY_ID'],
+              aliases: %w[-K --K --kms-key-id],
+              desc: 'The id of the AWS KMS Key to use for encryption. '\
+                    'Can also be set with AWS_KMS_KEY_ID'
+            ]
+          end
+        end
+
         private
 
         def new_client
@@ -48,21 +61,6 @@ module Shipshape
 
         def write_content(file, content)
           content.each { |line| file.write(line + "\n") }
-        end
-
-        class << self
-          private
-
-          def kms_key_id_options
-            [
-              :kms_key_id,
-              type: :string,
-              default: ENV['AWS_KMS_KEY_ID'],
-              aliases: %w[-K --K --kms-key-id],
-              desc: 'The id of the AWS KMS Key to use for encryption. '\
-                    'Can also be set with AWS_KMS_KEY_ID'
-            ]
-          end
         end
       end
     end
