@@ -42,7 +42,10 @@ module Shipshape
     end
 
     def env_file
-      Pathname(".env.#{prefix.app_env}").expand_path
+      path = Pathname(".env.#{prefix.app_env}").expand_path
+      path.write('') unless path.exist?
+
+      path
     end
 
     def exist_locally
@@ -68,7 +71,7 @@ module Shipshape
     end
 
     def local_params
-      Dotenv.parse(".env.#{prefix.app_env}").map { |key, val| { name: File.join(prefix, key), value: val } }
+      Dotenv.parse(env_file.basename.to_s).map { |key, val| { name: File.join(prefix, key), value: val } }
     end
 
     def remote_params
