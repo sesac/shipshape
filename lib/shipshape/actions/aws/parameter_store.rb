@@ -19,9 +19,10 @@ module Shipshape
           params.map { |param_obj| param_obj.to_h.select { |key,| %i[name value].include?(key) } }
         end
 
-        def put_parameters(*params)
+        def put_parameters(prefix, *params)
           params.each { |param|
             ssm_client.put_parameter(put_opts.merge(param))
+            ssm_client.add_tags_to_resource(parameter_tags(param[:name], prefix))
           }
         end
 
@@ -46,11 +47,40 @@ module Shipshape
         end
 
         def put_opts
-          default = { overwrite: true, type: 'String' }
+          return default_opts.merge(encrypt_opts) if options['encrypt']
 
-          return default.merge(key_id: options['kms_key_id'], type: 'SecureString') if options['encrypt']
+          default_opts
+        end
 
-          default
+        def default_opts
+          {
+            overwrite: true,
+            type: 'String'
+          }
+        end
+
+        def encrypt_opts
+          {
+            key_id: options['kms_key_id'],
+            type: 'SecureString'
+          }
+        end
+
+        def parameter_tags(resource_id, prefix)
+          {
+            resource_type: "Parameter",
+            resource_id: resource_id,
+            tags: [
+              {
+                key: prefix.app_env,
+                value: "WORKLOAD_TYPE_TAG"
+              },
+              {
+                key: prefix.app_name,
+                value: "PROJECT_TAG"
+              }
+            ]
+          }
         end
       end
     end
