@@ -17,7 +17,7 @@ module Shipshape
 
     def push(*args)
       @prefix = Prefix.new(*args)
-      put_parameters(*exist_locally)
+      put_parameters(prefix, *exist_locally)
     end
 
     desc 'pull APP_NAME APP_ENV',
