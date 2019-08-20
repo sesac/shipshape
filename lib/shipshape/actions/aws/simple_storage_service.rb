@@ -29,7 +29,7 @@ module Shipshape
             [
               :encrypt,
               type: :boolean,
-              default: false,
+              default: true,
               aliases: %w[-e --e],
               desc: 'Whether or not to encrypt/unencrypt the specified S3 object'
             ]

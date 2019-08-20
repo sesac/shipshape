@@ -29,6 +29,15 @@ module Shipshape
       env_file.write(modified_locals)
     end
 
+    desc 'purge APP_NAME APP_ENV',
+         'Deletes all parameters in parameter store for given app and env.' \
+         'Authenticates using AWS credentials in env or ~/.aws/credentials.'
+
+    def purge(*args)
+      @prefix = Prefix.new(*args)
+      delete_parameters(*remote_params)
+    end
+
     private
 
     class Prefix < DelegateClass(String)
