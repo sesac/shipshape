@@ -26,6 +26,12 @@ module Shipshape
           }
         end
 
+        def delete_parameters(*params)
+          params.each { |param|
+            ssm_client.delete_parameter(name: param[:name])
+          }
+        end
+
         private
 
         def ssm_client
