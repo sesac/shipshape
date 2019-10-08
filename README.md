@@ -12,7 +12,7 @@ git clone <repo>
 cd <repo>
 bundle
 gem build shipshape.gemspec
-gem install shipshape-0.2.0
+gem install shipshape-0.2.3
 ```
 
 ## Usage
@@ -28,6 +28,8 @@ also run `bin/console` for an interactive prompt that will allow you to experime
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the
 version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version,
 push git commits and tags.
+
+To invoke cli without installation, run `bundle exec ./exe/shipshape <command>`.
 
 ## Contributing
 
