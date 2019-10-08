@@ -12,8 +12,9 @@ module Shipshape
     attr_reader :prefix
 
     desc 'push APP_NAME APP_ENV',
-         'Push values in .env file to AWS Parameter Store. ' \
-         'Authenticates using AWS credentials in env or ~/.aws/credentials.'
+         "Push values in .env file to AWS Parameter Store. \n" \
+         "Authenticates using AWS credentials in env or ~/.aws/credentials. \n" \
+         "NOTE: to avoid dotenv parsing special characters such as $, enclose variable in single quotes." \
 
     def push(*args)
       @prefix = Prefix.new(*args)

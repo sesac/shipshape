@@ -29,6 +29,8 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version,
 push git commits and tags.
 
+To invoke cli without installation, run `bundle exec ./exe/shipshape <command>`.
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/sesac/shipshape. This project is
