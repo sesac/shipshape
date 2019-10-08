@@ -12,7 +12,7 @@ git clone <repo>
 cd <repo>
 bundle
 gem build shipshape.gemspec
-gem install shipshape-0.2.0
+gem install shipshape-0.2.3
 ```
 
 ## Usage
