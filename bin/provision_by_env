@@ -66,6 +66,11 @@ curl -L "https://raw.githubusercontent.com/docker/compose/$(docker-compose versi
 # ruby
 gpg --keyserver hkp://pool.sks-keyservers.net \
     --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+if [ $? -ne 1 ]
+then
+  curl -sSL https://rvm.io/mpapis.asc | gpg --import -
+  curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -
+fi
 curl -sSL "$RVM_INSTALLER_URL" | bash -s stable --ruby=2.5 --gems=bundler,dotenv,pry
 usermod -aG rvm root
 usermod -aG rvm ubuntu
