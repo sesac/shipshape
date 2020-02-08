@@ -1,7 +1,9 @@
 #!/bin/bash
 
 DOCKER_INSTALLER_URL="https://get.docker.com/"
-DOCKER_COMPOSE_VERSION=$(git ls-remote "https://github.com/docker/compose" | grep refs/tags | grep -oP "[0-9]+\\.[0-9][0-9]+\\.[0-9]+$" | tail -n 1)
+# version hard-coded to prevent installing unknown (potentially broken) versions of compose.
+# https://github.com/docker/compose/issues/6268#issuecomment-576628705
+DOCKER_COMPOSE_VERSION=1.25.4
 RVM_INSTALLER_URL="https://raw.githubusercontent.com/wayneeseguin/rvm/stable/binscripts/rvm-installer"
 CODEDEPLOY_INSTALLER_URL="https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install"
 MONITORING_INSTALLER_URL="https://aws-cloudwatch.s3.amazonaws.com/downloads/CloudWatchMonitoringScripts-1.2.2.zip"
