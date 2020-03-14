@@ -7,7 +7,8 @@ remote_version=${3:-"${REMOTE_IMAGE_VERSION:-}"}
 remote_version=${remote_version:-"$local_version"}
 registry_host=${4:-"368304857153.dkr.ecr.us-east-1.amazonaws.com"}
 
-eval "$(aws ecr get-login --no-include-email --region us-east-1)"
+aws ecr get-login-password --region us-east-1 | \
+    docker login --username AWS --password-stdin "$registry_host/$app_name"
 
 local_image="$app_name:$local_version"
 remote_image="$registry_host/$app_name:$remote_version"
