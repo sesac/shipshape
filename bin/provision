@@ -65,7 +65,7 @@ cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | crontab -
 cd /home/ubuntu || true
 wget "$CODEDEPLOY_INSTALLER_URL"
 chmod +x ./install
-bash -l -c "ruby ./install auto -v releases/codedeploy-agent-1.3.1.rpm"
+bash -l -c "ruby ./install auto"
 service codedeploy-agent start
 
 # awscli
