@@ -32,7 +32,8 @@ apt-get install -y \
         python-pip \
         unzip \
         libwww-perl \
-        libdatetime-perl
+        libdatetime-perl \
+        gnupg2
 
 # docker
 wget -qO- "$DOCKER_INSTALLER_URL" | sh
@@ -47,7 +48,7 @@ curl -L "https://raw.githubusercontent.com/docker/compose/$(docker-compose versi
      -o "/etc/bash_completion.d/docker-compose"
 
 # ruby
-gpg --keyserver hkp://keys.gnupg.net \
+sudo gpg2 --keyserver hkp://pgp.mit.edu \
     --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
 curl -sSL "$RVM_INSTALLER_URL" | bash -s stable --ruby=2.5 --gems=bundler,dotenv,pry
 usermod -aG rvm root
