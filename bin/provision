@@ -11,7 +11,7 @@ AWSCLI_INSTALLER_URL="https://s3.amazonaws.com/aws-cli/awscli-bundle.zip"
 
 # hostname config (for sudo to work properly)
 echo "$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)" "$(hostname)" | sudo tee -a /etc/hosts
-
+apt-get install -y ruby
 # packages
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
@@ -78,7 +78,7 @@ apt-get -y install sysdig
 # codedeploy
 cd /home/ubuntu || true
 wget "$CODEDEPLOY_INSTALLER_URL"
-sudo apt-get install -y ruby
+#sudo apt-get install -y ruby
 chmod +x install
 bash -l -c "sudo ./install auto"
 #sudo ./install auto
