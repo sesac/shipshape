@@ -35,6 +35,15 @@ apt-get install -y \
         libdatetime-perl \
         gnupg2
 
+# codedeploy
+apt-get -y install ruby-full
+cd /home/ubuntu || true
+wget "$CODEDEPLOY_INSTALLER_URL"
+chmod +x install
+bash -l -c "sudo ./install auto"
+#sudo ./install auto
+service codedeploy-agent start
+
 # docker
 wget -qO- "$DOCKER_INSTALLER_URL" | sh
 usermod -aG docker ubuntu
