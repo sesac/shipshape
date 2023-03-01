@@ -11,13 +11,14 @@ AWSCLI_INSTALLER_URL="https://s3.amazonaws.com/aws-cli/awscli-bundle.zip"
 
 # hostname config (for sudo to work properly)
 echo "$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)" "$(hostname)" | sudo tee -a /etc/hosts
-apt-get install -y ruby-full
+
 # packages
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
                -o Dpkg::Options::="--force-confdef" \
                -o Dpkg::Options::="--force-confold"
 apt-get install -y \
+        ruby-full \
         jq \
         rpm \
         htop \
