@@ -34,6 +34,7 @@ apt-get install -y \
         libwww-perl \
         libdatetime-perl \
         gnupg2
+        ruby-full \
 
 # docker
 wget -qO- "$DOCKER_INSTALLER_URL" | sh
@@ -65,7 +66,7 @@ cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | crontab -
 cd /home/ubuntu || true
 wget "$CODEDEPLOY_INSTALLER_URL"
 chmod +x ./install
-bash -l -c "ruby ./install auto"
+bash -l -c "sudo ./install auto"
 service codedeploy-agent start
 
 # awscli
