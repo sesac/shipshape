@@ -64,8 +64,8 @@ cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | crontab -
 # codedeploy
 cd /home/ubuntu || true
 wget "$CODEDEPLOY_INSTALLER_URL"
-#sudo apt install -y ruby
 chmod +x install
+sudo apt-get install -y ruby
 #bash -l -c "sudo ./install auto"
 #sudo ./install auto
 #service codedeploy-agent start
