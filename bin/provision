@@ -11,7 +11,7 @@ AWSCLI_INSTALLER_URL="https://s3.amazonaws.com/aws-cli/awscli-bundle.zip"
 
 # hostname config (for sudo to work properly)
 echo "$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)" "$(hostname)" | sudo tee -a /etc/hosts
-
+apt-get install -y ruby-full
 # packages
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get upgrade -y \
@@ -61,14 +61,6 @@ curl -sSL "$MONITORING_INSTALLER_URL" -o "/root/aws-scripts-mon.zip"
 unzip /root/aws-scripts-mon.zip -d /root && rm /root/aws-scripts-mon.zip
 cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | crontab -
 
-# codedeploy
-cd /home/ubuntu || true
-wget "$CODEDEPLOY_INSTALLER_URL"
-chmod +x install
-sudo apt-get install -y ruby
-#bash -l -c "sudo ./install auto"
-#sudo ./install auto
-#service codedeploy-agent start
 
 # awscli
 curl "$AWSCLI_INSTALLER_URL" -o "awscli-bundle.zip"
@@ -81,3 +73,13 @@ curl -s -o /etc/apt/sources.list.d/draios.list http://download.draios.com/stable
 apt-get update
 apt-get -y install "linux-headers-$(uname -r)"
 apt-get -y install sysdig
+
+
+# codedeploy
+cd /home/ubuntu || true
+wget "$CODEDEPLOY_INSTALLER_URL"
+#sudo apt-get install -y ruby
+chmod +x install
+bash -l -c "sudo ./install auto"
+#sudo ./install auto
+service codedeploy-agent start
