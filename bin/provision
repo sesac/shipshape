@@ -76,9 +76,9 @@ apt-get -y install sysdig
 
 
 # codedeploy
+apt-get -y install ruby-full
 cd /home/ubuntu || true
 wget "$CODEDEPLOY_INSTALLER_URL"
-apt-get -y install ruby-full
 chmod +x install
 bash -l -c "sudo ./install auto"
 #sudo ./install auto
