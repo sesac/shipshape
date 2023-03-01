@@ -34,7 +34,6 @@ apt-get install -y \
         libwww-perl \
         libdatetime-perl \
         gnupg2
-        ruby-full
 
 # docker
 wget -qO- "$DOCKER_INSTALLER_URL" | sh
