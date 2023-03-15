@@ -91,10 +91,12 @@ unzip /root/aws-scripts-mon.zip -d /root && rm /root/aws-scripts-mon.zip
 cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | crontab -
 
 # codedeploy
+apt-get -y install ruby-full
 cd /home/ubuntu || true
 wget "$CODEDEPLOY_INSTALLER_URL"
-chmod +x ./install
-bash -l -c "ruby ./install auto"
+chmod +x install
+bash -l -c "sudo ./install auto"
+#sudo ./install auto
 service codedeploy-agent start
 
 # awscli
