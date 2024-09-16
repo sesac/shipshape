@@ -41,6 +41,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'thor', '~> 0.20'
 
   spec.add_development_dependency 'bundler', '~> 2.5.7'
+
   spec.add_development_dependency 'codeclimate-test-reporter', '~> 1.0'
   spec.add_development_dependency 'pry', '~> 0.10'
   spec.add_development_dependency 'rake', '~> 12.0'
