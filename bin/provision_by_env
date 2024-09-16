@@ -5,7 +5,7 @@ set -u
 ENV="$1"
 # version hard-coded to prevent installing unknown (potentially broken) versions of compose.
 # https://github.com/docker/compose/issues/6268#issuecomment-576628705
-DOCKER_COMPOSE_VERSION=1.25.4
+DOCKER_COMPOSE_VERSION=27.2.0
 RVM_INSTALLER_URL="https://raw.githubusercontent.com/wayneeseguin/rvm/stable/binscripts/rvm-installer"
 CODEDEPLOY_INSTALLER_URL="https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install"
 MONITORING_INSTALLER_URL="https://aws-cloudwatch.s3.amazonaws.com/downloads/CloudWatchMonitoringScripts-1.2.2.zip"
@@ -69,7 +69,7 @@ curl -L "https://raw.githubusercontent.com/docker/compose/$(docker-compose versi
 # ruby
 sudo gpg2 --keyserver hkp://pgp.mit.edu \
     --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
-curl -sSL "$RVM_INSTALLER_URL" | bash -s stable --ruby=3.2.2 --gems=bundler,dotenv,pry
+curl -sSL "$RVM_INSTALLER_URL" | bash -s stable --ruby=3,2,2 --gems=bundler,dotenv,pry
 usermod -aG rvm root
 usermod -aG rvm ubuntu
 
