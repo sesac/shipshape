@@ -22,10 +22,10 @@ module Shipshape
            desc: 'Compose file for building non-local img.'
 
     def build(image_version)
-      run 'docker-compose build --force-rm'
+      run 'docker compose build --force-rm'
       statuses = run_status
       remote_img_build_cmd = "IMAGE_VERSION=#{image_version} " \
-                             "docker-compose -f #{options['docker_build_yml']} build --force-rm"
+                             "docker compose -f #{options['docker_build_yml']} build --force-rm"
       run remote_img_build_cmd unless options['local']
       statuses += run_status
       raise 'Problem building docker images' if statuses.positive?
