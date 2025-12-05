@@ -42,7 +42,7 @@ wget "$CODEDEPLOY_INSTALLER_URL"
 chmod +x install
 bash -l -c "sudo ./install auto"
 #sudo ./install auto
-service codedeploy-agent start
+systemctl start codedeploy-agent
 
 # docker
 wget -qO- "$DOCKER_INSTALLER_URL" | sh
