@@ -38,7 +38,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'dotenv', '~> 2.2'
   spec.add_dependency 'octokit', '~> 4.8'
   spec.add_dependency 'rspec_junit_formatter', '~> 0.3'
-  spec.add_dependency 'thor', '~> 0.20'
+  spec.add_dependency 'thor', '>= 1.0'
+  spec.required_ruby_version = '>= 3.4.7'
 
   spec.add_development_dependency 'bundler', '~> 2.3'
 
