@@ -1,6 +1,5 @@
 #!/bin/bash
 
-DOCKER_INSTALLER_URL="https://get.docker.com/"
 # version hard-coded to prevent installing unknown (potentially broken) versions of compose.
 # https://github.com/docker/compose/issues/6268#issuecomment-576628705
 DOCKER_COMPOSE_VERSION=1.25.4
@@ -44,8 +43,16 @@ bash -l -c "sudo ./install auto"
 #sudo ./install auto
 service codedeploy-agent start
 
-# docker
-wget -qO- "$DOCKER_INSTALLER_URL" | sh
+# docker - install from Docker's apt repo with an explicit package list.
+# get.docker.com installs Docker's CURRENT package set, which now includes
+# docker-model-plugin. That package does not exist for bionic, and because apt
+# installs are atomic the whole transaction fails - leaving the host with no
+# Docker at all. Pinning the package list keeps us to what the repo actually has.
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+add-apt-repository -y \
+  "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+apt-get update
+apt-get install -y docker-ce docker-ce-cli containerd.io
 usermod -aG docker ubuntu
 service docker start
 
