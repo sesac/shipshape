@@ -57,11 +57,23 @@ usermod -aG docker ubuntu
 service docker start
 
 # docker-compose
-curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" \
-     -o "/usr/local/bin/docker-compose"
+# --fail: treat HTTP errors (404, rate-limit) as a real failure instead of writing
+#         an empty/error-page file and returning 0.
+# --retry: absorb transient network blips on a freshly-booted host.
+if ! curl -fL --retry 5 --retry-delay 5 \
+     "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" \
+     -o "/usr/local/bin/docker-compose"; then
+  echo "FATAL: failed to download docker-compose ${DOCKER_COMPOSE_VERSION} after retries" >&2
+  exit 1
+fi
 sudo chmod +x /usr/local/bin/docker-compose
-curl -L "https://raw.githubusercontent.com/docker/compose/$(docker-compose version --short)/contrib/completion/bash/docker-compose" \
-     -o "/etc/bash_completion.d/docker-compose"
+if ! docker-compose version --short >/dev/null 2>&1; then
+  echo "FATAL: downloaded docker-compose binary is not executable/working" >&2
+  exit 1
+fi
+curl -fL --retry 5 --retry-delay 5 \
+     "https://raw.githubusercontent.com/docker/compose/$(docker-compose version --short)/contrib/completion/bash/docker-compose" \
+     -o "/etc/bash_completion.d/docker-compose" || true
 
 # ruby
 sudo gpg2 --keyserver hkp://pgp.mit.edu \
