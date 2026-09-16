@@ -78,6 +78,17 @@ curl -fL --retry 5 --retry-delay 5 \
      "https://raw.githubusercontent.com/docker/compose/$(docker-compose version --short)/contrib/completion/bash/docker-compose" \
      -o "/etc/bash_completion.d/docker-compose" || true
 
+# codedeploy - installed and started here, after docker-compose but before
+# RVM (below) changes what 'ruby' resolves to for a login shell, which broke
+# CodeDeploy's installer when this block ran after RVM.
+apt-get -y install ruby-full
+cd /home/ubuntu || true
+wget "$CODEDEPLOY_INSTALLER_URL"
+chmod +x install
+bash -l -c "sudo ./install auto"
+#sudo ./install auto
+service codedeploy-agent start
+
 # ruby
 sudo gpg2 --keyserver hkp://pgp.mit.edu \
     --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
@@ -101,15 +112,6 @@ job="* * * * * $command"
 curl -sSL "$MONITORING_INSTALLER_URL" -o "/root/aws-scripts-mon.zip"
 unzip /root/aws-scripts-mon.zip -d /root && rm /root/aws-scripts-mon.zip
 cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | crontab -
-
-# codedeploy
-apt-get -y install ruby-full
-cd /home/ubuntu || true
-wget "$CODEDEPLOY_INSTALLER_URL"
-chmod +x install
-bash -l -c "sudo ./install auto"
-#sudo ./install auto
-service codedeploy-agent start
 
 # awscli
 curl "$AWSCLI_INSTALLER_URL" -o "awscli-bundle.zip"
