@@ -34,14 +34,16 @@ apt-get install -y \
         libdatetime-perl \
         gnupg2
 
-# codedeploy
+# codedeploy - install here (needs the apt-installed system ruby, before RVM
+# below changes what 'ruby' resolves to for a login shell). Starting the agent
+# is deferred to the end of the script - see below - so CodeDeploy can't hand
+# this instance a deployment before docker-compose is actually installed.
 apt-get -y install ruby-full
 cd /home/ubuntu || true
 wget "$CODEDEPLOY_INSTALLER_URL"
 chmod +x install
 bash -l -c "sudo ./install auto"
 #sudo ./install auto
-service codedeploy-agent start
 
 # docker - install from Docker's apt repo with an explicit package list.
 # get.docker.com installs Docker's CURRENT package set, which now includes
@@ -87,11 +89,6 @@ unzip awscli-bundle.zip
 apt-get -y install "linux-headers-$(uname -r)"
 
 
-# codedeploy
-apt-get -y install ruby-full
-cd /home/ubuntu || true
-wget "$CODEDEPLOY_INSTALLER_URL"
-chmod +x install
-bash -l -c "sudo ./install auto"
-#sudo ./install auto
+# codedeploy - agent is already installed (see above); start it now that
+# docker-compose is confirmed present.
 service codedeploy-agent start
