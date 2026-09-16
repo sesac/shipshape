@@ -60,11 +60,34 @@ usermod -aG docker ubuntu
 service docker start
 
 # docker-compose
-curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" \
-     -o "/usr/local/bin/docker-compose"
+# --fail: treat HTTP errors (404, rate-limit) as a real failure instead of writing
+#         an empty/error-page file and returning 0.
+# --retry: absorb transient network blips on a freshly-booted host.
+if ! curl -fL --retry 5 --retry-delay 5 \
+     "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" \
+     -o "/usr/local/bin/docker-compose"; then
+  echo "FATAL: failed to download docker-compose ${DOCKER_COMPOSE_VERSION} after retries" >&2
+  exit 1
+fi
 sudo chmod +x /usr/local/bin/docker-compose
-curl -L "https://raw.githubusercontent.com/docker/compose/$(docker-compose version --short)/contrib/completion/bash/docker-compose" \
-     -o "/etc/bash_completion.d/docker-compose"
+if ! docker-compose version --short >/dev/null 2>&1; then
+  echo "FATAL: downloaded docker-compose binary is not executable/working" >&2
+  exit 1
+fi
+curl -fL --retry 5 --retry-delay 5 \
+     "https://raw.githubusercontent.com/docker/compose/$(docker-compose version --short)/contrib/completion/bash/docker-compose" \
+     -o "/etc/bash_completion.d/docker-compose" || true
+
+# codedeploy - installed and started here, after docker-compose but before
+# RVM (below) changes what 'ruby' resolves to for a login shell, which broke
+# CodeDeploy's installer when this block ran after RVM.
+apt-get -y install ruby-full
+cd /home/ubuntu || true
+wget "$CODEDEPLOY_INSTALLER_URL"
+chmod +x install
+bash -l -c "sudo ./install auto"
+#sudo ./install auto
+service codedeploy-agent start
 
 # ruby
 sudo gpg2 --keyserver hkp://pgp.mit.edu \
@@ -89,15 +112,6 @@ job="* * * * * $command"
 curl -sSL "$MONITORING_INSTALLER_URL" -o "/root/aws-scripts-mon.zip"
 unzip /root/aws-scripts-mon.zip -d /root && rm /root/aws-scripts-mon.zip
 cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | crontab -
-
-# codedeploy
-apt-get -y install ruby-full
-cd /home/ubuntu || true
-wget "$CODEDEPLOY_INSTALLER_URL"
-chmod +x install
-bash -l -c "sudo ./install auto"
-#sudo ./install auto
-service codedeploy-agent start
 
 # awscli
 curl "$AWSCLI_INSTALLER_URL" -o "awscli-bundle.zip"
