@@ -95,7 +95,10 @@ service codedeploy-agent start
 # if they are missing, so a failure here must not abort the run.
 sudo gpg2 --keyserver hkp://pgp.mit.edu \
     --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB || true
-curl -sSL "$RVM_INSTALLER_URL" | bash -s stable --ruby=2.5 --gems=bundler,dotenv,pry
+curl -sSL "$RVM_INSTALLER_URL" | bash -s stable --ruby=2.5 --gems=dotenv,pry
+# bundler pinned: the latest release needs Ruby >= 3.2 and fails on 2.5, which under
+# set -e (correctly) aborts provisioning. 2.3.27 is the last release supporting 2.5.
+/usr/local/rvm/bin/rvm 2.5 do gem install bundler -v 2.3.27 --no-document
 usermod -aG rvm root
 usermod -aG rvm ubuntu
 
