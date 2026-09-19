@@ -9,7 +9,8 @@ DOCKER_COMPOSE_VERSION=1.25.4
 RVM_INSTALLER_URL="https://raw.githubusercontent.com/wayneeseguin/rvm/stable/binscripts/rvm-installer"
 CODEDEPLOY_INSTALLER_URL="https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install"
 MONITORING_INSTALLER_URL="https://aws-cloudwatch.s3.amazonaws.com/downloads/CloudWatchMonitoringScripts-1.2.2.zip"
-AWSCLI_INSTALLER_URL="https://s3.amazonaws.com/aws-cli/awscli-bundle.zip"
+# pinned: the unversioned bundle now requires Python >= 3.10, which these hosts lack
+AWSCLI_INSTALLER_URL="https://s3.amazonaws.com/aws-cli/awscli-bundle-1.19.112.zip"
 
 # hostname config (for sudo to work properly)
 echo "$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)" "$(hostname)" | sudo tee -a /etc/hosts
