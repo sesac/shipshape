@@ -1,12 +1,16 @@
 #!/bin/bash
 
+# fail fast: a failed step must stop provisioning, not yield a half-configured host
+set -eo pipefail
+
 # version hard-coded to prevent installing unknown (potentially broken) versions of compose.
 # https://github.com/docker/compose/issues/6268#issuecomment-576628705
 DOCKER_COMPOSE_VERSION=1.25.4
 RVM_INSTALLER_URL="https://raw.githubusercontent.com/wayneeseguin/rvm/stable/binscripts/rvm-installer"
 CODEDEPLOY_INSTALLER_URL="https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install"
 MONITORING_INSTALLER_URL="https://aws-cloudwatch.s3.amazonaws.com/downloads/CloudWatchMonitoringScripts-1.2.2.zip"
-AWSCLI_INSTALLER_URL="https://s3.amazonaws.com/aws-cli/awscli-bundle.zip"
+# pinned: the unversioned bundle now requires Python >= 3.10, which these hosts lack
+AWSCLI_INSTALLER_URL="https://s3.amazonaws.com/aws-cli/awscli-bundle-1.19.112.zip"
 
 # hostname config (for sudo to work properly)
 echo "$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)" "$(hostname)" | sudo tee -a /etc/hosts
@@ -63,12 +67,21 @@ curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VE
      -o "/usr/local/bin/docker-compose"
 sudo chmod +x /usr/local/bin/docker-compose
 curl -L "https://raw.githubusercontent.com/docker/compose/$(docker-compose version --short)/contrib/completion/bash/docker-compose" \
-     -o "/etc/bash_completion.d/docker-compose"
+     -o "/etc/bash_completion.d/docker-compose" || true
 
 # ruby
+# best-effort: the keyserver is flaky and rvm-installer fetches the keys itself
+# if they are missing, so a failure here must not abort the run.
 sudo gpg2 --keyserver hkp://pgp.mit.edu \
-    --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
-curl -sSL "$RVM_INSTALLER_URL" | bash -s stable --ruby=2.5 --gems=bundler,dotenv,pry
+    --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB || true
+curl -sSL "$RVM_INSTALLER_URL" | bash -s stable --ruby=2.5
+# gems pinned to the last releases that support Ruby 2.5: the latest bundler (>= 3.2),
+# dotenv (>= 3.0) and pry (via io-console >= 2.6) all fail to install here, which under
+# set -e (correctly) aborts provisioning.
+for gem_spec in "bundler 2.3.27" "dotenv 2.8.1" "pry 0.14.2"; do
+  read -r gem_name gem_version <<< "$gem_spec"
+  /usr/local/rvm/bin/rvm 2.5 do gem install "$gem_name" -v "$gem_version" --no-document
+done
 usermod -aG rvm root
 usermod -aG rvm ubuntu
 
