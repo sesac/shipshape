@@ -29,8 +29,6 @@ apt-get install -y \
         libmysqlclient-dev \
         mysql-client \
         libgmp3-dev \
-        libmysql-java \
-        openjdk-8-jre \
         wget \
         python-pip \
         unzip \
