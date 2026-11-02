@@ -56,6 +56,15 @@ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 add-apt-repository -y \
   "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 apt-get update
+# docker - cap json-file container logs (SOP-609). Written before docker-ce is
+# installed so dockerd starts with it; uncapped logs filled hosts (SOP-475).
+mkdir -p /etc/docker
+cat > /etc/docker/daemon.json <<'JSON'
+{
+  "log-driver": "json-file",
+  "log-opts": { "max-size": "100m", "max-file": "3" }
+}
+JSON
 apt-get install -y docker-ce docker-ce-cli containerd.io
 usermod -aG docker ubuntu
 service docker start
