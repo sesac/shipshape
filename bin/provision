@@ -8,12 +8,18 @@ set -eo pipefail
 DOCKER_COMPOSE_VERSION=1.25.4
 RVM_INSTALLER_URL="https://raw.githubusercontent.com/wayneeseguin/rvm/stable/binscripts/rvm-installer"
 CODEDEPLOY_INSTALLER_URL="https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install"
-MONITORING_INSTALLER_URL="https://aws-cloudwatch.s3.amazonaws.com/downloads/CloudWatchMonitoringScripts-1.2.2.zip"
+# pinned like the other installers: "latest" is replaced in place by AWS
+CWAGENT_DEB_URL="https://amazoncloudwatch-agent.s3.amazonaws.com/ubuntu/amd64/1.300074.1b2005/amazon-cloudwatch-agent.deb"
 # pinned: the unversioned bundle now requires Python >= 3.10, which these hosts lack
 AWSCLI_INSTALLER_URL="https://s3.amazonaws.com/aws-cli/awscli-bundle-1.19.112.zip"
 
 # hostname config (for sudo to work properly)
-echo "$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)" "$(hostname)" | sudo tee -a /etc/hosts
+# IMDSv2 (token) so this keeps working when the launch template requires it
+# (SOP-621); it works with IMDSv1-optional hosts too. -f makes a failed lookup
+# abort provisioning instead of writing an error page into /etc/hosts.
+IMDS_TOKEN="$(curl -sf -X PUT -H "X-aws-ec2-metadata-token-ttl-seconds: 300" http://169.254.169.254/latest/api/token)"
+LOCAL_IPV4="$(curl -sf -H "X-aws-ec2-metadata-token: $IMDS_TOKEN" http://169.254.169.254/latest/meta-data/local-ipv4)"
+echo "$LOCAL_IPV4" "$(hostname)" | sudo tee -a /etc/hosts
 
 # packages
 apt-get update
@@ -99,12 +105,50 @@ done
 usermod -aG rvm root
 usermod -aG rvm ubuntu
 
-# CloudWatch Monitoring
-command="/root/aws-scripts-mon/mon-put-instance-data.pl --mem-util --mem-used --mem-avail --disk-path=/ --disk-space-util --disk-space-used --disk-space-avail --verbose --from-cron --auto-scaling"
-job="* * * * * $command"
-curl -sSL "$MONITORING_INSTALLER_URL" -o "/root/aws-scripts-mon.zip"
-unzip /root/aws-scripts-mon.zip -d /root && rm /root/aws-scripts-mon.zip
-cat <(grep -F -i -v "$command" <(crontab -l)) <(echo "$job") | crontab -
+# CloudWatch agent (SOP-621). Replaces the CloudWatch Monitoring Scripts
+# (/root/aws-scripts-mon, Perl, IMDSv1 only), which stop silently once the
+# launch template requires IMDSv2. Same namespace (System/Linux), every 60s.
+# MemoryUtilization and DiskSpaceUtilization keep their names, per InstanceId
+# and per AutoScalingGroupName as before. Used/available are now in bytes under
+# the agent's own names (mem_used, mem_available, disk_used, disk_free) rather than the
+# Perl script's MB/GB MemoryUsed/MemoryAvailable/DiskSpaceUsed/DiskSpaceAvailable.
+# The instance role already has CloudWatchAgentServerPolicy.
+curl -fsSL "$CWAGENT_DEB_URL" -o /tmp/amazon-cloudwatch-agent.deb
+dpkg -i -E /tmp/amazon-cloudwatch-agent.deb
+rm /tmp/amazon-cloudwatch-agent.deb
+cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<'JSON'
+{
+  "agent": { "metrics_collection_interval": 60, "omit_hostname": true },
+  "metrics": {
+    "namespace": "System/Linux",
+    "append_dimensions": {
+      "InstanceId": "${aws:InstanceId}",
+      "AutoScalingGroupName": "${aws:AutoScalingGroupName}"
+    },
+    "aggregation_dimensions": [["InstanceId"], ["AutoScalingGroupName"]],
+    "metrics_collected": {
+      "mem": {
+        "measurement": [
+          { "name": "mem_used_percent", "rename": "MemoryUtilization", "unit": "Percent" },
+          { "name": "mem_used", "unit": "Bytes" },
+          { "name": "mem_available", "unit": "Bytes" }
+        ]
+      },
+      "disk": {
+        "resources": ["/"],
+        "drop_device": true,
+        "measurement": [
+          { "name": "used_percent", "rename": "DiskSpaceUtilization", "unit": "Percent" },
+          { "name": "used", "unit": "Bytes" },
+          { "name": "free", "unit": "Bytes" }
+        ]
+      }
+    }
+  }
+}
+JSON
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s \
+  -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
 
 
 # awscli
