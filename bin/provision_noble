@@ -1,0 +1,149 @@
+#!/bin/bash
+#
+# Ubuntu 24.04 (noble) counterpart of bin/provision (SOP-778, 22.04 EOL).
+# bin/provision is left untouched: every existing HFA launch template curls it
+# from master at boot. Point a launch template at this file only together with
+# a noble AMI.
+#
+# Differences from bin/provision:
+#   - instance metadata via IMDSv2 tokens (works with HttpTokens=required)
+#   - no mon-put-instance-data.pl root cron (IMDSv1-only Perl scripts); the
+#     CloudWatch agent publishes mem/disk/cpu to CWAgent instead
+#   - noble package names (libaio1t64, libgmp-dev, python3-pip, gnupg)
+#   - Docker apt repo via a signed-by keyring (apt-key is gone)
+#   - awscli v2 (the pinned v1 bundle needs the old Python layout)
+#   - no RVM / Ruby 2.5: it does not build against noble's OpenSSL 3, and
+#     nothing on the host needs it (apps build and run in containers;
+#     the CodeDeploy agent uses the apt ruby)
+
+# fail fast: a failed step must stop provisioning, not yield a half-configured host
+set -eo pipefail
+
+# version hard-coded to prevent installing unknown (potentially broken) versions of compose.
+# Deploy hooks call the v1 'docker-compose' binary; 1.25.4 is what the 22.04 hosts run
+# (verified against docker-ce 29.6, min API 1.40).
+DOCKER_COMPOSE_VERSION=1.25.4
+CODEDEPLOY_INSTALLER_URL="https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install"
+CWAGENT_DEB_URL="https://amazoncloudwatch-agent.s3.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb"
+AWSCLI_V2_URL="https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+
+. /etc/os-release
+if [ "$VERSION_CODENAME" != "noble" ]; then
+  echo "FATAL: provision_noble is for Ubuntu 24.04 (noble), this host is $VERSION_CODENAME; use bin/provision" >&2
+  exit 1
+fi
+
+# instance metadata (IMDSv2)
+imds() {
+  local token
+  token=$(curl -fsS -X PUT "http://169.254.169.254/latest/api/token" \
+               -H "X-aws-ec2-metadata-token-ttl-seconds: 300")
+  curl -fsS -H "X-aws-ec2-metadata-token: $token" "http://169.254.169.254/latest/meta-data/$1"
+}
+
+# hostname config (for sudo to work properly)
+echo "$(imds local-ipv4)" "$(hostname)" | tee -a /etc/hosts
+
+export DEBIAN_FRONTEND=noninteractive
+
+# packages
+apt-get update
+apt-get upgrade -y \
+        -o Dpkg::Options::="--force-confdef" \
+        -o Dpkg::Options::="--force-confold"
+apt-get install -y \
+        ca-certificates \
+        curl \
+        jq \
+        rpm \
+        htop \
+        libaio1t64 \
+        libpq-dev \
+        libmysqlclient-dev \
+        mysql-client \
+        libgmp-dev \
+        wget \
+        python3-pip \
+        unzip \
+        libwww-perl \
+        libdatetime-perl \
+        gnupg
+
+# codedeploy - install now, start at the end of the script so CodeDeploy can't
+# hand this instance a deployment before docker-compose is installed.
+apt-get install -y ruby-full
+cd /home/ubuntu || true
+wget -q -O install "$CODEDEPLOY_INSTALLER_URL"
+chmod +x install
+./install auto
+systemctl stop codedeploy-agent || true
+
+# docker - Docker's apt repo with an explicit package list (see bin/provision).
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $VERSION_CODENAME stable" \
+  > /etc/apt/sources.list.d/docker.list
+apt-get update
+# cap json-file container logs (SOP-609). Written before docker-ce is installed
+# so dockerd starts with it; uncapped logs filled hosts (SOP-475).
+mkdir -p /etc/docker
+cat > /etc/docker/daemon.json <<'JSON'
+{
+  "log-driver": "json-file",
+  "log-opts": { "max-size": "100m", "max-file": "3" }
+}
+JSON
+apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+usermod -aG docker ubuntu
+systemctl enable --now docker
+
+# docker-compose (v1 binary, called by the deploy hooks)
+curl -fsSL "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" \
+     -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+docker-compose version
+curl -fsSL "https://raw.githubusercontent.com/docker/compose/${DOCKER_COMPOSE_VERSION}/contrib/completion/bash/docker-compose" \
+     -o /etc/bash_completion.d/docker-compose || true
+
+# awscli v2
+curl -fsSL "$AWSCLI_V2_URL" -o /tmp/awscliv2.zip
+unzip -q -o /tmp/awscliv2.zip -d /tmp
+/tmp/aws/install --update -i /usr/local/aws-cli -b /usr/local/bin
+rm -rf /tmp/aws /tmp/awscliv2.zip
+aws --version
+
+# CloudWatch agent (replaces the mon-put-instance-data.pl cron). Same config as
+# the agent already running on the 22.04 hosts (CWAgent namespace, mem/cpu/disk),
+# minus its logs section: /var/log/messages and /var/log/secure do not exist on Ubuntu.
+curl -fsSL "$CWAGENT_DEB_URL" -o /tmp/amazon-cloudwatch-agent.deb
+dpkg -i /tmp/amazon-cloudwatch-agent.deb
+rm -f /tmp/amazon-cloudwatch-agent.deb
+cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<'JSON'
+{
+  "agent": { "metrics_collection_interval": 60, "run_as_user": "root" },
+  "metrics": {
+    "namespace": "CWAgent",
+    "append_dimensions": {
+      "InstanceId": "${aws:InstanceId}",
+      "InstanceType": "${aws:InstanceType}",
+      "AutoScalingGroupName": "${aws:AutoScalingGroupName}"
+    },
+    "metrics_collected": {
+      "mem": { "measurement": ["mem_used_percent", "mem_available", "mem_total", "mem_used"] },
+      "cpu": { "measurement": ["cpu_usage_idle", "cpu_usage_user", "cpu_usage_system"], "totalcpu": true },
+      "disk": { "measurement": ["used_percent", "used", "free", "total"], "resources": ["/"] }
+    }
+  }
+}
+JSON
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s \
+  -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
+# kernel headers (build dependency for native extensions)
+apt-get install -y "linux-headers-$(uname -r)"
+
+# codedeploy - start now that docker-compose is confirmed present.
+systemctl enable codedeploy-agent
+systemctl start codedeploy-agent
+echo "provision_noble: done"
